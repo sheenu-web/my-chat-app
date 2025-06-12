@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Friend Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="username-container">
+        <h2>Enter Your Name</h2>
+        <input id="username-input" autocomplete="off" />
+        <button id="username-button">Join Chat</button>
+    </div>
+    <div id="chat-container" class="hidden">
+        <ul id="messages"></ul>
+        <form id="chat-form" action="">
+            <input id="m" autocomplete="off" /><button>Send</button>
+        </form>
+        <form id="upload-form" enctype="multipart/form-data">
+            <input type="file" id="file-input" name="file" />
+            <button type="submit">Upload File</button>
+        </form>
+        <div id="upload-status"></div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+</body>
+</html>

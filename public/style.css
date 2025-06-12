@@ -1,13 +1,139 @@
-body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; color: #333; }
-#username-container { padding: 2rem; text-align: center; background: #fff; max-width: 400px; margin: 5rem auto; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-#chat-container { max-width: 800px; margin: 1rem auto; padding: 1rem; border: 1px solid #ddd; border-radius: 8px; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-#messages { list-style-type: none; margin: 0; padding: 0; height: 60vh; overflow-y: scroll; border-bottom: 1px solid #eee; margin-bottom: 1rem; }
-#messages li { padding: 0.5rem 1rem; }
-#messages li:nth-child(odd) { background: #f9f9f9; }
-#chat-form, #upload-form { display: flex; padding: 0.25rem; }
-#chat-form input, #upload-form input { border: 1px solid #ddd; padding: 0.75rem; flex-grow: 1; border-radius: 2rem; margin-right: 0.5rem; }
-#chat-form button, #upload-form button { background: #007bff; border: none; padding: 0.75rem 1.5rem; color: white; border-radius: 2rem; cursor: pointer; }
-#chat-form button:hover, #upload-form button:hover { background: #0056b3; }
-#upload-form { margin-top: 1rem; border-top: 1px solid #eee; padding-top: 1rem; }
-#upload-status { padding: 0.5rem; color: #555; font-size: 0.9em; }
+/* Import a futuristic font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+
+/* Define our futuristic color palette using CSS variables */
+:root {
+    --background-color: #0d1117;
+    --container-bg-color: #161b22;
+    --border-color: #30363d;
+    --primary-text-color: #c9d1d9;
+    --neon-blue: #58a6ff;
+    --neon-blue-glow: rgba(88, 166, 255, 0.3);
+}
+
+/* Basic body styling */
+body { 
+    margin: 0; 
+    padding: 1rem; 
+    font-family: 'Roboto Mono', monospace; 
+    background-color: var(--background-color);
+    color: var(--primary-text-color);
+    overflow-x: hidden;
+}
+
+/* Main container styles for both username and chat windows */
+#username-container, #chat-container {
+    background: var(--container-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 800px;
+    margin: 3rem auto;
+    animation: pulse-glow 4s infinite alternate;
+}
+
+/* A subtle pulsing glow animation */
+@keyframes pulse-glow {
+    from { box-shadow: 0 0 8px var(--neon-blue-glow); }
+    to { box-shadow: 0 0 20px var(--neon-blue-glow); }
+}
+
+#username-container {
+    text-align: center;
+    max-width: 400px;
+}
+
+h2 {
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue-glow);
+    letter-spacing: 2px;
+}
+
+/* Message list styling */
+#messages { 
+    list-style-type: none; 
+    margin: 0; 
+    padding: 1rem; 
+    overflow-y: scroll;
+    height: 60vh;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    background-color: var(--background-color);
+}
+
+#messages li { 
+    padding: 0.5rem 1rem; 
+    word-wrap: break-word;
+    border-bottom: 1px solid #222831;
+}
+
+#messages li strong {
+    color: var(--neon-blue);
+}
+
+/* Form styling */
+#chat-form, #upload-form { 
+    display: flex; 
+    gap: 0.5rem;
+}
+
+input[type="text"], input[type="file"]::file-selector-button {
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    color: var(--primary-text-color);
+    padding: 0.75rem; 
+    border-radius: 6px; 
+    font-family: 'Roboto Mono', monospace;
+    transition: all 0.3s ease;
+}
+
+input[type="file"] {
+    flex-grow: 1;
+}
+
+input[type="text"] {
+    flex-grow: 1;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 8px var(--neon-blue-glow);
+}
+
+/* Button styling */
+button, input[type="file"]::file-selector-button {
+    background: transparent;
+    border: 1px solid var(--neon-blue);
+    padding: 0.75rem 1.5rem; 
+    color: var(--neon-blue);
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-family: 'Roboto Mono', monospace;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+button:hover, input[type="file"]::file-selector-button:hover {
+    background: var(--neon-blue-glow);
+    color: #fff;
+    box-shadow: 0 0 15px var(--neon-blue-glow);
+}
+
+#upload-status {
+    padding: 0.5rem;
+    color: var(--neon-blue);
+    font-size: 0.9em;
+    height: 1.5em; /* Reserve space to prevent layout shift */
+    text-align: center;
+}
+
 .hidden { display: none; }
+
+/* Custom scrollbar for a more futuristic feel */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--background-color); }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--neon-blue); }

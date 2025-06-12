@@ -31,7 +31,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 0; /* Sharp corners */
     backdrop-filter: blur(10px);
-    padding: 1.5rem 2rem;
+    padding: 2rem;
     max-width: 800px;
     margin: 3rem auto;
     display: flex;
@@ -45,7 +45,11 @@ body {
     gap: 1rem;
 }
 
-h1, h2 {
+#chat-container {
+    height: 80vh; /* Make chat container take up most of the screen height */
+}
+
+h2 {
     font-family: 'Orbitron', sans-serif;
     color: var(--border-color);
     text-shadow: 0 0 8px var(--neon-glow);
@@ -55,21 +59,6 @@ h1, h2 {
 }
 
 .hidden { display: none; }
-
-.chat-header {
-    text-align: center;
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
-}
-
-.chat-footer {
-    text-align: center;
-    padding-top: 1rem;
-    margin-top: 1rem;
-    font-size: 0.8em;
-    color: var(--border-color);
-    opacity: 0.6;
-}
 
 #login-error {
     color: var(--admin-color);
@@ -82,7 +71,8 @@ h1, h2 {
     margin: 0; 
     padding: 0; 
     overflow-y: scroll;
-    flex-grow: 1;
+    flex-grow: 1; /* This makes the message list fill available space */
+    margin-bottom: 1rem; /* Add space between messages and input */
 }
 
 #messages li { 

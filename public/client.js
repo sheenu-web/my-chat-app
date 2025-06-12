@@ -1,31 +1,48 @@
+// client.js
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io({ autoConnect: false });
 
     // --- DOM Elements ---
     const usernameContainer = document.getElementById('username-container');
     const usernameInput = document.getElementById('username-input');
-    const usernameButton = document.getElementById('username-button');
+    const passwordInput = document.getElementById('password-input'); // New
+    const loginButton = document.getElementById('login-button');
+    const loginError = document.getElementById('login-error'); // New
+    
     const chatContainer = document.getElementById('chat-container');
     const messages = document.getElementById('messages');
     const chatForm = document.getElementById('chat-form');
     const messageInput = document.getElementById('m');
-    const uploadForm = document.getElementById('upload-form');
-    const fileInput = document.getElementById('file-input');
-    const uploadStatus = document.getElementById('upload-status');
     
-    let username = '';
-
-    // --- Username Handling ---
-    usernameButton.addEventListener('click', () => {
+    // --- Login Handling ---
+    const handleLogin = () => {
         const name = usernameInput.value.trim();
+        const pass = passwordInput.value; // Get password value
+
         if (name) {
-            username = name;
-            usernameContainer.classList.add('hidden');
-            chatContainer.classList.remove('hidden');
-            
+            loginError.textContent = '';
+            // Send username AND password to the server
             socket.connect();
-            socket.emit('user joined', username);
+            socket.emit('user joined', { username: name, password: pass });
         }
+    };
+
+    loginButton.addEventListener('click', handleLogin);
+    passwordInput.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') handleLogin();
+    });
+
+    // Handle successful login from server
+    socket.on('login successful', () => {
+        usernameContainer.classList.add('hidden');
+        chatContainer.classList.remove('hidden');
+        messageInput.focus();
+    });
+
+    // Handle failed login from server
+    socket.on('login failed', (errorMsg) => {
+        loginError.textContent = `// ${errorMsg}`;
+        socket.disconnect();
     });
 
     // --- Chat Message Handling ---
@@ -37,65 +54,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    socket.on('chat message', (data) => {
+    const addMessage = (data) => {
         const item = document.createElement('li');
-        item.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+        // Check for admin status to apply a different style
+        if (data.isAdmin) {
+            item.classList.add('admin-message');
+        }
+        item.innerHTML = `<strong>${data.username}:</strong> ${data.message || data.message_text}`;
         messages.appendChild(item);
-        window.scrollTo(0, document.body.scrollHeight);
+        messages.scrollTop = messages.scrollHeight; // Advanced scrolling
+    };
+
+    socket.on('chat message', (data) => {
+        addMessage(data);
     });
 
-    // --- NEW: Load Message History ---
-    // This block listens for the 'load history' event from the server
+    // --- Load Message History ---
     socket.on('load history', (history) => {
         history.forEach(data => {
-            const item = document.createElement('li');
-            // Note: The server sends 'message_text' from the database
-            item.innerHTML = `<strong>${data.username}:</strong> ${data.message_text}`;
-            messages.appendChild(item);
-        });
-        // Scroll to the bottom after loading the old messages
-        window.scrollTo(0, document.body.scrollHeight);
-    });
-
-    // --- File Upload Handling ---
-    uploadForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        const file = fileInput.files[0];
-        if (!file) {
-            uploadStatus.textContent = 'Please select a file to upload.';
-            return;
-        }
-        
-        if (file.size > 50 * 1024 * 1024) { // 50 MB
-             uploadStatus.textContent = 'File is too large. Max size is 50 MB.';
-             return;
-        }
-
-        const formData = new FormData();
-        formData.append('file', file);
-
-        uploadStatus.textContent = 'Uploading...';
-        
-        fetch('/upload', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.filePath) {
-                uploadStatus.textContent = 'Upload successful!';
-                socket.emit('file uploaded', { fileName: file.name, filePath: data.filePath });
-            } else {
-                throw new Error('Upload failed on server.');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            uploadStatus.textContent = 'Upload failed. Please try again.';
-        })
-        .finally(() => {
-            setTimeout(() => { uploadStatus.textContent = ''; }, 5000);
+            addMessage(data);
         });
     });
+
+    // --- File Upload Logic is now REMOVED ---
 });

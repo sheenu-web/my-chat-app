@@ -1,6 +1,6 @@
 // server.js
 
-// 1. Import necessary modules
+// 1. Import Modules
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -8,52 +8,86 @@ const multer = require('multer');
 const path = require('path');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const { Pool } = require('pg'); // <-- NEW: Import the pg library
 
-// 2. Configure Cloudinary using environment variables from Render
+// --- NEW: DATABASE SETUP ---
+// Render provides the DATABASE_URL environment variable.
+// The 'pg' library automatically uses it to connect.
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false // Required for Render database connections
+  }
+});
+
+// Function to create the messages table if it doesn't exist
+const createTable = async () => {
+  const queryText = `
+    CREATE TABLE IF NOT EXISTS messages (
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(50) NOT NULL,
+      message_text TEXT NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+  try {
+    await pool.query(queryText);
+    console.log('Messages table is ready.');
+  } catch (err) {
+    console.error('Error creating messages table', err);
+  }
+};
+// --- END DATABASE SETUP ---
+
+
+// --- CLOUDINARY FILE UPLOAD SETUP ---
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// 3. Configure file storage with Cloudinary instead of local disk
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'chat-app-uploads', // A folder name in your Cloudinary account
+    folder: 'chat-app-uploads',
     allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'txt']
   }
 });
 
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 50 * 1024 * 1024 // 50 MB limit still applies
-  }
-});
+const upload = multer({ storage: storage, limits: { fileSize: 50 * 1024 * 1024 } });
+// --- END CLOUDINARY SETUP ---
 
-// 4. Initialize the app and create a server
+
+// --- APP & SERVER INITIALIZATION ---
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-// 5. Serve static files (HTML, CSS, client-side JS) from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 6. Update the route to handle file uploads to Cloudinary
 app.post('/upload', upload.single('file'), (req, res) => {
   if (!req.file) {
     return res.status(400).send('No file uploaded.');
   }
-
-  // Send back the secure URL from Cloudinary
-  res.json({
-    filePath: req.file.path 
-  });
+  res.json({ filePath: req.file.path });
 });
+// --- END APP INITIALIZATION ---
 
-// 7. Handle Socket.IO connections (no changes here)
-io.on('connection', (socket) => {
+
+// --- SOCKET.IO LOGIC ---
+io.on('connection', async (socket) => {
+  console.log('A user connected');
+
+  // NEW: Load message history when a user connects
+  try {
+    const result = await pool.query('SELECT username, message_text FROM messages ORDER BY created_at ASC LIMIT 100');
+    // Send message history to the newly connected client ONLY
+    socket.emit('load history', result.rows);
+  } catch (err) {
+    console.error('Error loading message history', err);
+  }
+
   socket.on('user joined', (username) => {
     socket.username = username;
     socket.broadcast.emit('chat message', {
@@ -62,15 +96,23 @@ io.on('connection', (socket) => {
     });
   });
 
-  socket.on('chat message', (msg) => {
-    io.emit('chat message', {
-      username: socket.username,
-      message: msg
-    });
+  // UPDATED: Save message to database before sending to clients
+  socket.on('chat message', async (msg) => {
+    try {
+      // Save the new message to the database
+      await pool.query('INSERT INTO messages(username, message_text) VALUES($1, $2)', [socket.username, msg]);
+
+      // Broadcast the message to all clients
+      io.emit('chat message', {
+        username: socket.username,
+        message: msg
+      });
+    } catch (err) {
+      console.error('Error saving message', err);
+    }
   });
 
   socket.on('file uploaded', (data) => {
-    // The filePath is now a full URL from Cloudinary
     io.emit('chat message', {
         username: socket.username,
         message: `uploaded a file: <a href="<span class="math-inline">\{data\.filePath\}" target\="\_blank"\></span>{data.fileName}</a>`
@@ -86,9 +128,13 @@ io.on('connection', (socket) => {
     }
   });
 });
+// --- END SOCKET.IO LOGIC ---
 
-// 8. Start the server (no changes here)
+
+// --- SERVER START ---
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
+  // NEW: Create the database table when the server starts
+  await createTable();
 });

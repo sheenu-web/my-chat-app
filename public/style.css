@@ -1,139 +1,155 @@
 /* Import a futuristic font from Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Roboto+Mono:wght@400;700&display=swap');
 
-/* Define our futuristic color palette using CSS variables */
+/* Define our advanced black theme palette */
 :root {
-    --background-color: #0d1117;
-    --container-bg-color: #161b22;
-    --border-color: #30363d;
-    --primary-text-color: #c9d1d9;
-    --neon-blue: #58a6ff;
-    --neon-blue-glow: rgba(88, 166, 255, 0.3);
+    --background-color: #000000;
+    --container-bg-color: rgba(10, 15, 20, 0.8);
+    --border-color: #00ffc3;
+    --primary-text-color: #e6e6e6;
+    --neon-glow: rgba(0, 255, 195, 0.5);
+    --admin-color: #ff5575;
 }
 
-/* Basic body styling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Add an animated grid background */
 body { 
     margin: 0; 
     padding: 1rem; 
     font-family: 'Roboto Mono', monospace; 
-    background-color: var(--background-color);
+    background: var(--background-color) url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"%3E%3Cg fill="%2300ffc3" fill-opacity="0.1"%3E%3Cpath d="M0 0h20v1H0zM0 2h20v1H0zM0 4h20v1H0zM0 6h20v1H0zM0 8h20v1H0zM0 10h20v1H0zM0 12h20v1H0zM0 14h20v1H0zM0 16h20v1H0zM0 18h20v1H0z"/%3E%3C/g%3E%3C/svg%3E');
     color: var(--primary-text-color);
-    overflow-x: hidden;
+    overflow: hidden; /* Hide body scrollbars */
 }
 
-/* Main container styles for both username and chat windows */
+/* Main container styles */
 #username-container, #chat-container {
     background: var(--container-bg-color);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 2rem;
+    border-radius: 0; /* Sharp corners */
+    backdrop-filter: blur(10px);
+    padding: 1.5rem 2rem;
     max-width: 800px;
     margin: 3rem auto;
-    animation: pulse-glow 4s infinite alternate;
-}
-
-/* A subtle pulsing glow animation */
-@keyframes pulse-glow {
-    from { box-shadow: 0 0 8px var(--neon-blue-glow); }
-    to { box-shadow: 0 0 20px var(--neon-blue-glow); }
+    display: flex;
+    flex-direction: column;
+    box-shadow: inset 0 0 15px var(--neon-glow), 0 0 15px var(--neon-glow);
 }
 
 #username-container {
     text-align: center;
     max-width: 400px;
+    gap: 1rem;
 }
 
-h2 {
-    color: var(--neon-blue);
-    text-shadow: 0 0 5px var(--neon-blue-glow);
-    letter-spacing: 2px;
-}
-
-/* Message list styling */
-#messages { 
-    list-style-type: none; 
-    margin: 0; 
-    padding: 1rem; 
-    overflow-y: scroll;
-    height: 60vh;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    margin-bottom: 1rem;
-    background-color: var(--background-color);
-}
-
-#messages li { 
-    padding: 0.5rem 1rem; 
-    word-wrap: break-word;
-    border-bottom: 1px solid #222831;
-}
-
-#messages li strong {
-    color: var(--neon-blue);
-}
-
-/* Form styling */
-#chat-form, #upload-form { 
-    display: flex; 
-    gap: 0.5rem;
-}
-
-input[type="text"], input[type="file"]::file-selector-button {
-    background: var(--background-color);
-    border: 1px solid var(--border-color);
-    color: var(--primary-text-color);
-    padding: 0.75rem; 
-    border-radius: 6px; 
-    font-family: 'Roboto Mono', monospace;
-    transition: all 0.3s ease;
-}
-
-input[type="file"] {
-    flex-grow: 1;
-}
-
-input[type="text"] {
-    flex-grow: 1;
-}
-
-input[type="text"]:focus {
-    outline: none;
-    border-color: var(--neon-blue);
-    box-shadow: 0 0 8px var(--neon-blue-glow);
-}
-
-/* Button styling */
-button, input[type="file"]::file-selector-button {
-    background: transparent;
-    border: 1px solid var(--neon-blue);
-    padding: 0.75rem 1.5rem; 
-    color: var(--neon-blue);
-    border-radius: 6px; 
-    cursor: pointer; 
-    font-family: 'Roboto Mono', monospace;
-    font-weight: bold;
+h1, h2 {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--border-color);
+    text-shadow: 0 0 8px var(--neon-glow);
+    letter-spacing: 4px;
     text-transform: uppercase;
-    transition: all 0.3s ease;
-}
-
-button:hover, input[type="file"]::file-selector-button:hover {
-    background: var(--neon-blue-glow);
-    color: #fff;
-    box-shadow: 0 0 15px var(--neon-blue-glow);
-}
-
-#upload-status {
-    padding: 0.5rem;
-    color: var(--neon-blue);
-    font-size: 0.9em;
-    height: 1.5em; /* Reserve space to prevent layout shift */
-    text-align: center;
+    margin: 0;
 }
 
 .hidden { display: none; }
 
-/* Custom scrollbar for a more futuristic feel */
+.chat-header {
+    text-align: center;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+.chat-footer {
+    text-align: center;
+    padding-top: 1rem;
+    margin-top: 1rem;
+    font-size: 0.8em;
+    color: var(--border-color);
+    opacity: 0.6;
+}
+
+#login-error {
+    color: var(--admin-color);
+    min-height: 1.2em;
+}
+
+/* Message list with advanced scrolling */
+#messages { 
+    list-style-type: none; 
+    margin: 0; 
+    padding: 0; 
+    overflow-y: scroll;
+    flex-grow: 1;
+}
+
+#messages li { 
+    padding: 0.8rem 1rem; 
+    word-wrap: break-word;
+    border-bottom: 1px solid rgba(0, 255, 195, 0.1);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Fade-in animation for new messages */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#messages li strong {
+    color: var(--border-color);
+}
+
+/* Special style for admin messages */
+#messages li.admin-message strong {
+    color: var(--admin-color);
+    text-shadow: 0 0 5px var(--admin-color);
+}
+
+/* Form styling */
+#chat-form { 
+    display: flex; 
+    gap: 0.5rem;
+}
+
+input[type="text"], input[type="password"] {
+    background: rgba(0, 255, 195, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--primary-text-color);
+    padding: 0.75rem; 
+    flex-grow: 1; 
+    border-radius: 0;
+    font-family: 'Roboto Mono', monospace;
+    transition: all 0.3s ease;
+}
+
+input:focus {
+    outline: none;
+    box-shadow: 0 0 8px var(--neon-glow);
+}
+
+/* Button styling */
+button {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    padding: 0.75rem 1.5rem; 
+    color: var(--border-color);
+    border-radius: 0; 
+    cursor: pointer; 
+    font-family: 'Orbitron', sans-serif;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background: var(--border-color);
+    color: var(--background-color);
+    box-shadow: 0 0 20px var(--neon-glow);
+}
+
+/* Custom scrollbar */
 ::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: var(--background-color); }
-::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--neon-blue); }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-color); }
+::-webkit-scrollbar-thumb:hover { background: #fff; }

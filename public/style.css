@@ -167,10 +167,10 @@ body[data-theme='light'] #messages li.my-message { color: #000; }
 
 /* --- FORMS & BUTTONS --- */
 
-/* UPDATED: This single rule applies the same style to all three input boxes */
-#login-container input[type="text"], 
-#login-container input[type="password"],
-#chat-form input[type="text"] {
+/* UPDATED: This single, powerful rule targets all three input boxes by their unique IDs */
+#username-input, 
+#password-input,
+#m {
     border: 1px solid var(--border-color);
     padding: 0.8rem 1rem;
     border-radius: 20px;
@@ -181,18 +181,23 @@ body[data-theme='light'] #messages li.my-message { color: #000; }
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-/* Specific layout adjustments for each input */
+/* Specific layout adjustments for each input still apply */
 #login-container input {
     width: 100%;
     margin-bottom: 1rem;
     text-align: center;
 }
 
-#chat-form input {
+#chat-form #m {
     flex-grow: 1;
 }
 
-input:focus { outline: none; border-color: var(--accent-color); background-color: var(--panel-bg-color); }
+input:focus { 
+    outline: none; 
+    border-color: var(--accent-color); 
+    background-color: var(--panel-bg-color);
+    box-shadow: 0 0 5px var(--accent-color);
+}
 
 button {
     background-color: var(--accent-color);

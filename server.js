@@ -1,12 +1,6 @@
-// server.js - Final Version with Image Preview
+// server.js - Allow PDFs and Image Previews
 
-// 1. Import Modules
-const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
-const path = require('path');
-const { Pool } = require('pg');
-const cloudinary = require('cloudinary').v2;
+// (Code from the top is unchanged...)
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 
@@ -27,12 +21,17 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: { folder: 'modern-chat-uploads' }
+  params: {
+    folder: 'modern-chat-uploads',
+    // UPDATED: Added 'pdf' to the list of allowed formats
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf'] 
+  }
 });
 
 const upload = multer({ storage: storage });
 // --- END CONFIGURATION ---
 
+// (The rest of the file is unchanged. Only the `allowed_formats` line above was modified.)
 
 // --- APP & SERVER INITIALIZATION ---
 const app = express();
@@ -41,7 +40,6 @@ const io = socketIo(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// UPDATED: The /upload route now sends back the resource_type (e.g., 'image')
 app.post('/upload', upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).send('No file uploaded.');
   res.json({
@@ -92,16 +90,13 @@ io.on('connection', async (socket) => {
     }
   });
 
-  // UPDATED: This now checks if the uploaded file is an image
   socket.on('file uploaded', async (data) => {
     if (!socket.username) return;
     
     let messageText;
-    // If Cloudinary says the file is an image, create an <img> tag
     if (data.resourceType === 'image') {
       messageText = `<a href="${data.filePath}" target="_blank" title="View full image"><img src="${data.filePath}" alt="${data.fileName}" class="chat-image"/></a>`;
     } else {
-      // Otherwise, create a normal link
       const fileLink = `<a href="${data.filePath}" target="_blank">${data.fileName}</a>`;
       messageText = `uploaded a file: ${fileLink}`;
     }

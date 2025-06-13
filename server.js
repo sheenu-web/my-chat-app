@@ -1,6 +1,12 @@
-// server.js - Allow PDFs and Image Previews
+// server.js - Final Bug Fix
 
-// (Code from the top is unchanged...)
+// 1. Import Modules
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+const path = require('path');
+const { Pool } = require('pg'); // <-- THIS IS THE MISSING LINE THAT IS NOW FIXED
+const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 
@@ -23,7 +29,6 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'modern-chat-uploads',
-    // UPDATED: Added 'pdf' to the list of allowed formats
     allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf'] 
   }
 });
@@ -31,7 +36,6 @@ const storage = new CloudinaryStorage({
 const upload = multer({ storage: storage });
 // --- END CONFIGURATION ---
 
-// (The rest of the file is unchanged. Only the `allowed_formats` line above was modified.)
 
 // --- APP & SERVER INITIALIZATION ---
 const app = express();
@@ -118,6 +122,7 @@ io.on('connection', async (socket) => {
 });
 // --- END SOCKET.IO LOGIC ---
 
+// Note: The Global Error Handler has been removed as it was for debugging and is no longer needed.
 
 // --- SERVER START ---
 const createTable = async () => {

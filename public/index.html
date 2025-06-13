@@ -3,31 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Futuristic Chat</title>
+    <title>Modern Chat</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <div id="username-container">
-        <h2>> SECURE_TERMINAL <</h2>
-        <div id="login-error"></div>
-        <input id="username-input" placeholder="Enter callsign..." autocomplete="off" />
-        <input type="password" id="password-input" placeholder="Enter password (if admin)..." />
-        <button id="login-button">Connect</button>
-    </div>
-
-    <main id="chat-container" class="hidden">
-        
-        <ul id="messages"></ul>
-        
-        <div class="input-area">
-            <form id="chat-form" action="">
-                <input id="m" placeholder="Transmit message..." autocomplete="off" />
-                <button type="submit">Send</button>
-            </form>
+    <div class="app-container">
+        <div id="login-container">
+            <h1>Welcome to Chat</h1>
+            <p>Enter a username to join the chat. To log in as an admin, use the assigned credentials.</p>
+            <div id="login-error"></div>
+            <input id="username-input" placeholder="Enter your username" autocomplete="off" />
+            <input type="password" id="password-input" placeholder="Password (for admin)" />
+            <button id="login-button">Join Chat</button>
         </div>
 
-    </main>
+        <div id="chat-container" class="hidden">
+            <header class="chat-header">
+                <h2>Public Chat Room</h2>
+            </header>
+            
+            <ul id="messages"></ul>
+            
+            <div class="chat-input-area">
+                <form id="chat-form">
+                    <input id="m" placeholder="Type a message..." autocomplete="off" />
+                    <label for="file-input" class="file-label">📎</label>
+                    <input type="file" id="file-input" name="file" />
+                    <button type="submit">Send</button>
+                </form>
+                <div id="upload-status"></div>
+            </div>
+        </div>
+    </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="client.js"></script>

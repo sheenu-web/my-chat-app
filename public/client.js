@@ -39,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') handleLogin();
     });
 
-    // UPDATED: Show admin panel on successful admin login
     socket.on('login successful', (data) => {
         loginContainer.classList.add('hidden');
         chatContainer.classList.remove('hidden');
@@ -97,31 +96,47 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData();
         formData.append('file', file);
 
+        // UPDATED: Axios config with better progress tracking
         const config = {
             onUploadProgress: (progressEvent) => {
                 const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                 uploadStatus.textContent = '';
                 progressBarContainer.classList.remove('hidden');
                 progressBar.style.width = `${percentCompleted}%`;
-                progressBar.textContent = `${percentCompleted}%`;
+                
+                if (percentCompleted < 100) {
+                    progressBar.textContent = `${percentCompleted}%`;
+                } else {
+                    // This provides better feedback to the user
+                    progressBar.textContent = 'Processing...';
+                }
             }
         };
 
         axios.post('/upload', formData, config)
             .then(response => {
                 progressBar.textContent = 'Success!';
-                // UPDATED: Now sends 'isImage' boolean
                 socket.emit('file uploaded', { 
                     fileName: file.name, 
                     filePath: response.data.filePath,
                     isImage: response.data.isImage
                 });
             })
-            .catch(error => { /* ... */ })
-            .finally(() => { /* ... */ });
+            .catch(error => {
+                console.error('Error:', error);
+                uploadStatus.textContent = 'Upload failed.';
+                progressBarContainer.classList.add('hidden');
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    progressBarContainer.classList.add('hidden');
+                    uploadStatus.textContent = '';
+                }, 2000);
+                fileInput.value = '';
+            });
     });
 
-    // --- NEW: Admin Panel Logic ---
+    // --- Admin Panel Logic ---
     clearChatButton.addEventListener('click', () => {
         if (confirm('Are you sure you want to delete ALL messages forever? This cannot be undone.')) {
             socket.emit('admin clear all');

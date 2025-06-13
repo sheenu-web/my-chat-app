@@ -1,7 +1,5 @@
-/* Import a clean, modern font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 
-/* Define our modern color palette */
 :root {
     --background-color: #e9eef2;
     --container-bg-color: #ffffff;
@@ -13,14 +11,10 @@
     --system-message-bg: #f8f9fa;
     --admin-color: #dc3545;
 }
-
-* {
-    box-sizing: border-box;
-}
-
+* { box-sizing: border-box; }
 body {
     margin: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Inter', sans-serif;
     background-color: var(--background-color);
     color: var(--text-color);
     display: flex;
@@ -28,12 +22,7 @@ body {
     align-items: center;
     min-height: 100vh;
 }
-
-.app-container {
-    width: 100%;
-    max-width: 500px;
-}
-
+.app-container { width: 100%; max-width: 500px; }
 #login-container {
     background: var(--container-bg-color);
     padding: 2rem;
@@ -41,26 +30,10 @@ body {
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     text-align: center;
 }
-
-#login-container h1 {
-    margin-bottom: 0.5rem;
-}
-
-#login-container p {
-    color: var(--secondary-text-color);
-    margin-bottom: 1.5rem;
-}
-
-#login-error {
-    color: var(--admin-color);
-    min-height: 1.2em;
-    font-weight: 500;
-}
-
-.hidden {
-    display: none;
-}
-
+#login-container h1 { margin-bottom: 0.5rem; }
+#login-container p { color: var(--secondary-text-color); margin-bottom: 1.5rem; }
+#login-error { color: var(--admin-color); min-height: 1.2em; font-weight: 500; }
+.hidden { display: none !important; }
 #chat-container {
     background: var(--container-bg-color);
     border-radius: 12px;
@@ -71,19 +44,12 @@ body {
     max-height: 800px;
     width: 100%;
 }
-
 .chat-header {
     padding: 1rem;
     border-bottom: 1px solid var(--border-color);
     text-align: center;
 }
-
-.chat-header h2 {
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: 700;
-}
-
+.chat-header h2 { margin: 0; font-size: 1.2rem; font-weight: 700; }
 #messages {
     list-style-type: none;
     margin: 0;
@@ -94,56 +60,14 @@ body {
     flex-direction: column;
     gap: 0.75rem;
 }
-
-#messages li {
-    padding: 0.5rem 1rem;
-    border-radius: 18px;
-    max-width: 80%;
-    word-wrap: break-word;
-}
-
-#messages li.my-message {
-    background-color: var(--my-message-bg);
-    align-self: flex-end; /* Aligns to the right */
-    border-bottom-right-radius: 4px;
-}
-
-#messages li:not(.my-message) {
-    background-color: var(--system-message-bg);
-    align-self: flex-start; /* Aligns to the left */
-    border-bottom-left-radius: 4px;
-}
-
-#messages li.system-message {
-    background-color: transparent;
-    color: var(--secondary-text-color);
-    font-style: italic;
-    font-size: 0.9em;
-    align-self: center;
-}
-
-#messages li.admin-message strong {
-    color: var(--admin-color);
-}
-
-#messages li strong {
-    display: block;
-    margin-bottom: 0.25rem;
-    font-weight: 700;
-    color: var(--primary-blue);
-}
-
-.chat-input-area {
-    padding: 1rem;
-    border-top: 1px solid var(--border-color);
-}
-
-#chat-form {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
+#messages li { padding: 0.5rem 1rem; border-radius: 18px; max-width: 80%; word-wrap: break-word; }
+#messages li.my-message { background-color: var(--my-message-bg); align-self: flex-end; border-bottom-right-radius: 4px; }
+#messages li:not(.my-message) { background-color: var(--system-message-bg); align-self: flex-start; border-bottom-left-radius: 4px; }
+#messages li.system-message { background-color: transparent; color: var(--secondary-text-color); font-style: italic; font-size: 0.9em; align-self: center; }
+#messages li.admin-message strong { color: var(--admin-color); }
+#messages li strong { display: block; margin-bottom: 0.25rem; font-weight: 700; color: var(--primary-blue); }
+.chat-input-area { padding: 1rem; border-top: 1px solid var(--border-color); }
+#chat-form { display: flex; align-items: center; gap: 0.5rem; }
 input[type="text"], input[type="password"] {
     border: 1px solid var(--border-color);
     padding: 0.75rem;
@@ -153,16 +77,8 @@ input[type="text"], input[type="password"] {
     width: 100%;
     margin-bottom: 1rem;
 }
-
-#chat-form input[type="text"] {
-    margin-bottom: 0;
-}
-
-input:focus {
-    outline: none;
-    border-color: var(--primary-blue);
-}
-
+#chat-form input[type="text"] { margin-bottom: 0; }
+input:focus { outline: none; border-color: var(--primary-blue); }
 button {
     background-color: var(--primary-blue);
     color: white;
@@ -177,37 +93,35 @@ button {
     align-items: center;
     transition: background-color 0.2s;
 }
-
-#login-button {
-    width: 100%;
-    border-radius: 22px;
-    font-size: 1rem;
-    font-weight: 500;
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-
-#file-input {
-    display: none; /* Hide the default file input */
-}
-.file-label {
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--secondary-text-color);
-    padding: 0.5rem;
-}
-#upload-status {
-    font-size: 0.8em;
-    color: var(--secondary-text-color);
-    text-align: center;
-    margin-top: 0.5rem;
-    height: 1em;
-}
-
-/* Custom scrollbar */
+#login-button { width: 100%; border-radius: 22px; font-size: 1rem; font-weight: 500; }
+button:hover { background-color: #0056b3; }
+#file-input { display: none; }
+.file-label { font-size: 1.5rem; cursor: pointer; color: var(--secondary-text-color); padding: 0.5rem; }
+#upload-status { font-size: 0.8em; color: var(--secondary-text-color); text-align: center; margin-top: 0.5rem; height: 1em; }
+.chat-image { max-width: 100%; max-height: 300px; border-radius: 12px; margin-top: 8px; display: block; }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+
+/* --- NEW: Progress Bar Styles --- */
+#progress-bar-container {
+    width: 100%;
+    background-color: var(--border-color);
+    border-radius: 10px;
+    margin-top: 0.5rem;
+    height: 20px;
+}
+#progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: var(--primary-blue);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.8em;
+    font-weight: 500;
+    transition: width 0.3s ease-in-out;
+}

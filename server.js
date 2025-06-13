@@ -1,4 +1,4 @@
-// server.js - Final Version with Error Handling
+// server.js - Final Version with Image Preview
 
 // 1. Import Modules
 const express = require('express');
@@ -41,15 +41,18 @@ const io = socketIo(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+// UPDATED: The /upload route now sends back the resource_type (e.g., 'image')
 app.post('/upload', upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).send('No file uploaded.');
-  res.json({ filePath: req.file.path });
+  res.json({
+    filePath: req.file.path,
+    resourceType: req.file.resource_type 
+  });
 });
 // --- END APP INITIALIZATION ---
 
 
 // --- SOCKET.IO LOGIC ---
-// (The entire io.on('connection', ...) block is unchanged)
 io.on('connection', async (socket) => {
   console.log('A user connected');
 
@@ -89,10 +92,20 @@ io.on('connection', async (socket) => {
     }
   });
 
+  // UPDATED: This now checks if the uploaded file is an image
   socket.on('file uploaded', async (data) => {
     if (!socket.username) return;
-    const fileLink = `<a href="${data.filePath}" target="_blank">${data.fileName}</a>`;
-    const messageText = `uploaded a file: ${fileLink}`;
+    
+    let messageText;
+    // If Cloudinary says the file is an image, create an <img> tag
+    if (data.resourceType === 'image') {
+      messageText = `<a href="${data.filePath}" target="_blank" title="View full image"><img src="${data.filePath}" alt="${data.fileName}" class="chat-image"/></a>`;
+    } else {
+      // Otherwise, create a normal link
+      const fileLink = `<a href="${data.filePath}" target="_blank">${data.fileName}</a>`;
+      messageText = `uploaded a file: ${fileLink}`;
+    }
+    
     try {
         await pool.query('INSERT INTO messages(username, message_text, is_admin) VALUES($1, $2, $3)', [socket.username, messageText, socket.isAdmin]);
         io.emit('chat message', { username: socket.username, message: messageText, isAdmin: socket.isAdmin });
@@ -109,18 +122,6 @@ io.on('connection', async (socket) => {
   });
 });
 // --- END SOCKET.IO LOGIC ---
-
-
-// --- NEW: Global Error Handling Middleware ---
-// This acts as a "safety net" to catch any crash during the upload.
-// It MUST be the last 'app.use' and before 'server.listen'.
-app.use((err, req, res, next) => {
-    console.error("--- UNHANDLED ERROR CAUGHT ---");
-    console.error("Error Message:", err.message);
-    console.error("Full Error Object:", JSON.stringify(err, null, 2)); // Print the full error
-    res.status(500).send('Something broke! Check the server logs for the full error.');
-});
-// ------------------------------------------
 
 
 // --- SERVER START ---

@@ -1,4 +1,4 @@
-// server.js - Final Version with PDF Download Fix
+// server.js - Final Version with Inline Image Fix
 
 const express = require('express');
 const http = require('http');
@@ -86,9 +86,14 @@ io.on('connection', async (socket) => {
     
     let messageText;
     if (data.isImage) {
-      messageText = `<a href="${data.filePath}" target="_blank" title="View full image"><img src="${data.filePath}" alt="${data.fileName}" class="chat-image"/></a>`;
+      // --- NEW: Add transformation flags to the image URL ---
+      const imageUrl = data.filePath;
+      const parts = imageUrl.split('/upload/');
+      // This inserts 'fl_inline/""' into the URL to force the browser to show the image
+      const inlineUrl = `${parts[0]}/upload/fl_inline/${parts[1]}`;
+
+      messageText = `<a href="${inlineUrl}" target="_blank" title="View full image"><img src="${inlineUrl}" alt="${data.fileName}" class="chat-image"/></a>`;
     } else {
-      // UPDATED: Added the 'download' attribute to the link
       const fileLink = `<a href="${data.filePath}" target="_blank" download>${data.fileName}</a>`;
       messageText = `uploaded a file: ${fileLink}`;
     }

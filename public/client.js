@@ -1,3 +1,4 @@
+// client.js
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io({ autoConnect: false });
 
@@ -14,6 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageInput = document.getElementById('m');
     const fileInput = document.getElementById('file-input');
     const uploadStatus = document.getElementById('upload-status');
+    const progressBarContainer = document.getElementById('progress-bar-container');
+    const progressBar = document.getElementById('progress-bar');
     
     let localUsername = '';
 
@@ -22,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const username = usernameInput.value.trim();
         const password = passwordInput.value;
         if (username) {
-            localUsername = username; // Store for personal message check
+            localUsername = username;
             loginError.textContent = '';
             socket.connect();
             socket.emit('user joined', { username, password });
@@ -48,36 +51,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Message & History Logic ---
     const addMessage = (data) => {
         const item = document.createElement('li');
-        
-        // Check if message is from the current user to align it right
         if (data.username === localUsername || data.username === 'shresth' && localUsername === 'shresth') {
             item.classList.add('my-message');
         }
-        
-        // Check for admin status to apply special styling
-        if (data.isAdmin) {
-            item.classList.add('admin-message');
-        }
-
-        // Check for system messages
-        if (data.username === 'System') {
-            item.classList.add('system-message');
-        }
-
+        if (data.isAdmin) { item.classList.add('admin-message'); }
+        if (data.username === 'System') { item.classList.add('system-message'); }
         item.innerHTML = `<strong>${data.username}:</strong> ${data.message || data.message_text}`;
         messages.appendChild(item);
         messages.scrollTop = messages.scrollHeight;
     };
 
-    socket.on('chat message', (data) => {
-        addMessage(data);
-    });
-
+    socket.on('chat message', addMessage);
     socket.on('load history', (history) => {
-        messages.innerHTML = ''; // Clear chat on load
-        history.forEach(data => {
-            addMessage(data);
-        });
+        messages.innerHTML = '';
+        history.forEach(addMessage);
     });
 
     // --- Form & File Upload Logic ---
@@ -89,34 +76,55 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // UPDATED: File upload logic with validation and progress bar
     fileInput.addEventListener('change', () => {
         const file = fileInput.files[0];
         if (!file) return;
 
-        uploadStatus.textContent = `Uploading ${file.name}...`;
+        // NEW: Client-side file type validation
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+        if (!allowedTypes.includes(file.type)) {
+            uploadStatus.textContent = 'Error: Only image and PDF files are allowed.';
+            setTimeout(() => { uploadStatus.textContent = ''; }, 4000);
+            fileInput.value = ''; // Reset file input
+            return;
+        }
+
         const formData = new FormData();
         formData.append('file', file);
 
-        fetch('/upload', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.filePath) {
-                uploadStatus.textContent = 'Upload successful!';
-                socket.emit('file uploaded', { fileName: file.name, filePath: data.filePath });
-            } else {
-                throw new Error('Upload failed on server.');
+        // NEW: Axios config with progress tracking
+        const config = {
+            onUploadProgress: (progressEvent) => {
+                const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                uploadStatus.textContent = ''; // Clear status text
+                progressBarContainer.classList.remove('hidden');
+                progressBar.style.width = `${percentCompleted}%`;
+                progressBar.textContent = `${percentCompleted}%`;
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            uploadStatus.textContent = 'Upload failed.';
-        })
-        .finally(() => {
-            setTimeout(() => { uploadStatus.textContent = ''; }, 4000);
-            fileInput.value = ''; // Reset file input
-        });
+        };
+
+        // NEW: Using Axios instead of Fetch
+        axios.post('/upload', formData, config)
+            .then(response => {
+                progressBar.textContent = 'Success!';
+                socket.emit('file uploaded', { 
+                    fileName: file.name, 
+                    filePath: response.data.filePath,
+                    resourceType: response.data.resourceType 
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                uploadStatus.textContent = 'Upload failed.';
+                progressBar.classList.add('hidden'); // Hide bar on error
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    progressBarContainer.classList.add('hidden');
+                    uploadStatus.textContent = '';
+                }, 2000);
+                fileInput.value = '';
+            });
     });
 });

@@ -1,7 +1,7 @@
 {
-  "name": "my-chat-app",
-  "version": "1.0.0",
-  "description": "A simple chat and file sharing app.",
+  "name": "modern-chat-app",
+  "version": "2.0.0",
+  "description": "A modern chat application with file sharing.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

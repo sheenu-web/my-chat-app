@@ -1,4 +1,4 @@
-// server.js - Final Version with Admin Controls
+// server.js - Final Version with PDF Download Fix
 
 const express = require('express');
 const http = require('http');
@@ -28,10 +28,8 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'modern-chat-uploads',
-    // More robust format validation. PDFs are treated as images by default here.
     allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf'],
-    // Ensure PDFs and other files are stored correctly
-    resource_type: "auto" 
+    resource_type: "auto"
   }
 });
 
@@ -46,20 +44,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/upload', upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).send('No file uploaded.');
-  console.log('Cloudinary Upload Success:', req.file); // For debugging
+  console.log('Cloudinary Upload Success:', req.file);
   res.json({
     filePath: req.file.path,
-    isImage: req.file.resource_type === 'image' // Send back a simple boolean
+    isImage: req.file.resource_type === 'image'
   });
 });
 
 io.on('connection', async (socket) => {
   console.log('A user connected');
-
   try {
     const result = await pool.query('SELECT * FROM messages ORDER BY created_at ASC LIMIT 150');
     socket.emit('load history', result.rows);
-  } catch (err) { /* ... */ }
+  } catch (err) { console.error('Error loading message history', err); }
 
   socket.on('user joined', (data) => {
     const { username, password } = data;
@@ -81,37 +78,34 @@ io.on('connection', async (socket) => {
     try {
       await pool.query('INSERT INTO messages(username, message_text, is_admin) VALUES($1, $2, $3)', [socket.username, msg, socket.isAdmin]);
       io.emit('chat message', { username: socket.username, message: msg, isAdmin: socket.isAdmin });
-    } catch (err) { /* ... */ }
+    } catch (err) { console.error('Error saving message', err); }
   });
 
   socket.on('file uploaded', async (data) => {
     if (!socket.username) return;
     
     let messageText;
-    // Check the 'isImage' boolean we sent from the upload route
     if (data.isImage) {
       messageText = `<a href="${data.filePath}" target="_blank" title="View full image"><img src="${data.filePath}" alt="${data.fileName}" class="chat-image"/></a>`;
     } else {
-      const fileLink = `<a href="${data.filePath}" target="_blank">${data.fileName}</a>`;
+      // UPDATED: Added the 'download' attribute to the link
+      const fileLink = `<a href="${data.filePath}" target="_blank" download>${data.fileName}</a>`;
       messageText = `uploaded a file: ${fileLink}`;
     }
     
     try {
         await pool.query('INSERT INTO messages(username, message_text, is_admin) VALUES($1, $2, $3)', [socket.username, messageText, socket.isAdmin]);
         io.emit('chat message', { username: socket.username, message: messageText, isAdmin: socket.isAdmin });
-    } catch (err) { /* ... */ }
+    } catch (err) { console.error('Error saving file message', err); }
   });
 
-  // NEW: Admin action to clear chat history
   socket.on('admin clear all', async () => {
-    if (!socket.isAdmin) return; // Security check
+    if (!socket.isAdmin) return;
     try {
-        await pool.query('TRUNCATE TABLE messages'); // Deletes all rows
-        io.emit('chat cleared'); // Tell all clients to clear their chat
+        await pool.query('TRUNCATE TABLE messages');
+        io.emit('chat cleared');
         console.log(`Admin ${socket.username} cleared the chat.`);
-    } catch (err) {
-        console.error('Error clearing chat history', err);
-    }
+    } catch (err) { console.error('Error clearing chat history', err); }
   });
 
   socket.on('disconnect', () => {
@@ -135,7 +129,7 @@ const createTable = async () => {
     try {
       await pool.query(queryText);
       console.log('Messages table is ready.');
-    } catch (err) { /* ... */ }
+    } catch (err) { console.error('Error creating messages table', err); }
 };
 
 const PORT = process.env.PORT || 3000;

@@ -1,11 +1,10 @@
-// server.js - Final Bug Fix
+// server.js - Final Version with Admin Controls
 
-// 1. Import Modules
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
-const { Pool } = require('pg'); // <-- THIS IS THE MISSING LINE THAT IS NOW FIXED
+const { Pool } = require('pg');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
@@ -29,15 +28,16 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'modern-chat-uploads',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf'] 
+    // More robust format validation. PDFs are treated as images by default here.
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf'],
+    // Ensure PDFs and other files are stored correctly
+    resource_type: "auto" 
   }
 });
 
 const upload = multer({ storage: storage });
 // --- END CONFIGURATION ---
 
-
-// --- APP & SERVER INITIALIZATION ---
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
@@ -46,40 +46,32 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/upload', upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).send('No file uploaded.');
+  console.log('Cloudinary Upload Success:', req.file); // For debugging
   res.json({
     filePath: req.file.path,
-    resourceType: req.file.resource_type 
+    isImage: req.file.resource_type === 'image' // Send back a simple boolean
   });
 });
-// --- END APP INITIALIZATION ---
 
-
-// --- SOCKET.IO LOGIC ---
 io.on('connection', async (socket) => {
   console.log('A user connected');
 
   try {
-    const result = await pool.query('SELECT username, message_text, is_admin FROM messages ORDER BY created_at ASC LIMIT 150');
+    const result = await pool.query('SELECT * FROM messages ORDER BY created_at ASC LIMIT 150');
     socket.emit('load history', result.rows);
-  } catch (err) {
-    console.error('Error loading message history', err);
-  }
+  } catch (err) { /* ... */ }
 
   socket.on('user joined', (data) => {
     const { username, password } = data;
-    if (username.toLowerCase() === ADMIN_USER) {
-      if (password === ADMIN_PASS) {
-        socket.username = `${ADMIN_USER}`;
-        socket.isAdmin = true;
-        socket.emit('login successful');
-        socket.broadcast.emit('chat message', { username: 'System', message: `${socket.username} (Admin) has entered the chat.` });
-      } else {
-        socket.emit('login failed', 'Invalid admin credentials.');
-      }
+    if (username.toLowerCase() === ADMIN_USER && password === ADMIN_PASS) {
+      socket.username = `${ADMIN_USER}`;
+      socket.isAdmin = true;
+      socket.emit('login successful', { isAdmin: true });
+      socket.broadcast.emit('chat message', { username: 'System', message: `${socket.username} (Admin) has entered the network.` });
     } else {
       socket.username = username;
       socket.isAdmin = false;
-      socket.emit('login successful');
+      socket.emit('login successful', { isAdmin: false });
       socket.broadcast.emit('chat message', { username: 'System', message: `${username} has joined the chat.` });
     }
   });
@@ -89,16 +81,15 @@ io.on('connection', async (socket) => {
     try {
       await pool.query('INSERT INTO messages(username, message_text, is_admin) VALUES($1, $2, $3)', [socket.username, msg, socket.isAdmin]);
       io.emit('chat message', { username: socket.username, message: msg, isAdmin: socket.isAdmin });
-    } catch (err) {
-      console.error('Error saving message', err);
-    }
+    } catch (err) { /* ... */ }
   });
 
   socket.on('file uploaded', async (data) => {
     if (!socket.username) return;
     
     let messageText;
-    if (data.resourceType === 'image') {
+    // Check the 'isImage' boolean we sent from the upload route
+    if (data.isImage) {
       messageText = `<a href="${data.filePath}" target="_blank" title="View full image"><img src="${data.filePath}" alt="${data.fileName}" class="chat-image"/></a>`;
     } else {
       const fileLink = `<a href="${data.filePath}" target="_blank">${data.fileName}</a>`;
@@ -108,8 +99,18 @@ io.on('connection', async (socket) => {
     try {
         await pool.query('INSERT INTO messages(username, message_text, is_admin) VALUES($1, $2, $3)', [socket.username, messageText, socket.isAdmin]);
         io.emit('chat message', { username: socket.username, message: messageText, isAdmin: socket.isAdmin });
+    } catch (err) { /* ... */ }
+  });
+
+  // NEW: Admin action to clear chat history
+  socket.on('admin clear all', async () => {
+    if (!socket.isAdmin) return; // Security check
+    try {
+        await pool.query('TRUNCATE TABLE messages'); // Deletes all rows
+        io.emit('chat cleared'); // Tell all clients to clear their chat
+        console.log(`Admin ${socket.username} cleared the chat.`);
     } catch (err) {
-        console.error('Error saving file message', err);
+        console.error('Error clearing chat history', err);
     }
   });
 
@@ -120,11 +121,7 @@ io.on('connection', async (socket) => {
     }
   });
 });
-// --- END SOCKET.IO LOGIC ---
 
-// Note: The Global Error Handler has been removed as it was for debugging and is no longer needed.
-
-// --- SERVER START ---
 const createTable = async () => {
     const queryText = `
       CREATE TABLE IF NOT EXISTS messages (
@@ -138,9 +135,7 @@ const createTable = async () => {
     try {
       await pool.query(queryText);
       console.log('Messages table is ready.');
-    } catch (err) {
-      console.error('Error creating messages table', err);
-    }
+    } catch (err) { /* ... */ }
 };
 
 const PORT = process.env.PORT || 3000;

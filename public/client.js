@@ -1,4 +1,3 @@
-// client.js
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io({ autoConnect: false });
 
@@ -19,10 +18,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressBar = document.getElementById('progress-bar');
     const adminPanel = document.getElementById('admin-panel');
     const clearChatButton = document.getElementById('clear-chat-button');
+    const themeToggle = document.getElementById('theme-toggle');
     
     let localUsername = '';
 
-    // --- Login Logic ---
+    // --- THEME SWITCHER LOGIC ---
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.body.setAttribute('data-theme', currentTheme);
+    themeToggle.checked = currentTheme === 'dark';
+
+    themeToggle.addEventListener('change', (e) => {
+        const newTheme = e.target.checked ? 'dark' : 'light';
+        document.body.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+    });
+
+    // --- LOGIN LOGIC ---
     const handleLogin = () => {
         const username = usernameInput.value.trim();
         const password = passwordInput.value;
@@ -35,13 +46,14 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     loginButton.addEventListener('click', handleLogin);
-    passwordInput.addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') handleLogin();
-    });
+    passwordInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') handleLogin(); });
+    usernameInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') handleLogin(); });
 
     socket.on('login successful', (data) => {
-        loginContainer.classList.add('hidden');
-        chatContainer.classList.remove('hidden');
+        loginContainer.classList.remove('active-panel');
+        loginContainer.classList.add('hidden-panel');
+        chatContainer.classList.remove('hidden-panel');
+        chatContainer.classList.add('active-panel');
         if (data.isAdmin) {
             adminPanel.classList.remove('hidden');
         }
@@ -49,19 +61,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     socket.on('login failed', (errorMsg) => {
-        loginError.textContent = errorMsg;
+        loginError.textContent = `// ${errorMsg}`;
         socket.disconnect();
     });
 
-    // --- Message & History Logic ---
+    // --- MESSAGE & HISTORY LOGIC ---
     const addMessage = (data) => {
         const item = document.createElement('li');
-        if (data.username === localUsername || data.username === 'shresth' && localUsername === 'shresth') {
-            item.classList.add('my-message');
-        }
-        if (data.isAdmin) { item.classList.add('admin-message'); }
-        if (data.username === 'System') { item.classList.add('system-message'); }
-        item.innerHTML = `<strong>${data.username}:</strong> ${data.message || data.message_text}`;
+        const isMyMessage = (data.username === localUsername) || (data.username === 'shresth' && localUsername === 'shresth');
+        
+        if (isMyMessage) item.classList.add('my-message');
+        if (data.isAdmin) item.classList.add('admin-message');
+        if (data.username === 'System') item.classList.add('system-message');
+
+        item.innerHTML = `<strong>${data.username}</strong><div class="message-content">${data.message || data.message_text}</div>`;
         messages.appendChild(item);
         messages.scrollTop = messages.scrollHeight;
     };
@@ -72,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         history.forEach(addMessage);
     });
 
-    // --- Form & File Upload Logic ---
+    // --- FORM & FILE UPLOAD LOGIC ---
     chatForm.addEventListener('submit', (e) => {
         e.preventDefault();
         if (messageInput.value) {
@@ -96,20 +109,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData();
         formData.append('file', file);
 
-        // UPDATED: Axios config with better progress tracking
         const config = {
             onUploadProgress: (progressEvent) => {
                 const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                 uploadStatus.textContent = '';
                 progressBarContainer.classList.remove('hidden');
                 progressBar.style.width = `${percentCompleted}%`;
-                
-                if (percentCompleted < 100) {
-                    progressBar.textContent = `${percentCompleted}%`;
-                } else {
-                    // This provides better feedback to the user
-                    progressBar.textContent = 'Processing...';
-                }
+                progressBar.textContent = (percentCompleted < 100) ? `${percentCompleted}%` : 'Processing...';
             }
         };
 
@@ -136,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
-    // --- Admin Panel Logic ---
+    // --- ADMIN PANEL LOGIC ---
     clearChatButton.addEventListener('click', () => {
         if (confirm('Are you sure you want to delete ALL messages forever? This cannot be undone.')) {
             socket.emit('admin clear all');

@@ -167,8 +167,10 @@ body[data-theme='light'] #messages li.my-message { color: #000; }
 
 /* --- FORMS & BUTTONS --- */
 
-/* UPDATED: A general style for all text inputs */
-input[type="text"], input[type="password"] {
+/* UPDATED: This single rule applies the same style to all three input boxes */
+#login-container input[type="text"], 
+#login-container input[type="password"],
+#chat-form input[type="text"] {
     border: 1px solid var(--border-color);
     padding: 0.8rem 1rem;
     border-radius: 20px;
@@ -179,14 +181,13 @@ input[type="text"], input[type="password"] {
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-/* Style for login inputs (layout specific) */
+/* Specific layout adjustments for each input */
 #login-container input {
     width: 100%;
     margin-bottom: 1rem;
     text-align: center;
 }
 
-/* Style for chat input (layout specific) */
 #chat-form input {
     flex-grow: 1;
 }

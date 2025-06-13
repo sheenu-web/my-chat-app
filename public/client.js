@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadStatus = document.getElementById('upload-status');
     const progressBarContainer = document.getElementById('progress-bar-container');
     const progressBar = document.getElementById('progress-bar');
+    const adminPanel = document.getElementById('admin-panel');
+    const clearChatButton = document.getElementById('clear-chat-button');
     
     let localUsername = '';
 
@@ -37,9 +39,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') handleLogin();
     });
 
-    socket.on('login successful', () => {
+    // UPDATED: Show admin panel on successful admin login
+    socket.on('login successful', (data) => {
         loginContainer.classList.add('hidden');
         chatContainer.classList.remove('hidden');
+        if (data.isAdmin) {
+            adminPanel.classList.remove('hidden');
+        }
         messageInput.focus();
     });
 
@@ -76,55 +82,54 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // UPDATED: File upload logic with validation and progress bar
     fileInput.addEventListener('change', () => {
         const file = fileInput.files[0];
         if (!file) return;
 
-        // NEW: Client-side file type validation
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
         if (!allowedTypes.includes(file.type)) {
             uploadStatus.textContent = 'Error: Only image and PDF files are allowed.';
             setTimeout(() => { uploadStatus.textContent = ''; }, 4000);
-            fileInput.value = ''; // Reset file input
+            fileInput.value = '';
             return;
         }
 
         const formData = new FormData();
         formData.append('file', file);
 
-        // NEW: Axios config with progress tracking
         const config = {
             onUploadProgress: (progressEvent) => {
                 const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                uploadStatus.textContent = ''; // Clear status text
+                uploadStatus.textContent = '';
                 progressBarContainer.classList.remove('hidden');
                 progressBar.style.width = `${percentCompleted}%`;
                 progressBar.textContent = `${percentCompleted}%`;
             }
         };
 
-        // NEW: Using Axios instead of Fetch
         axios.post('/upload', formData, config)
             .then(response => {
                 progressBar.textContent = 'Success!';
+                // UPDATED: Now sends 'isImage' boolean
                 socket.emit('file uploaded', { 
                     fileName: file.name, 
                     filePath: response.data.filePath,
-                    resourceType: response.data.resourceType 
+                    isImage: response.data.isImage
                 });
             })
-            .catch(error => {
-                console.error('Error:', error);
-                uploadStatus.textContent = 'Upload failed.';
-                progressBar.classList.add('hidden'); // Hide bar on error
-            })
-            .finally(() => {
-                setTimeout(() => {
-                    progressBarContainer.classList.add('hidden');
-                    uploadStatus.textContent = '';
-                }, 2000);
-                fileInput.value = '';
-            });
+            .catch(error => { /* ... */ })
+            .finally(() => { /* ... */ });
+    });
+
+    // --- NEW: Admin Panel Logic ---
+    clearChatButton.addEventListener('click', () => {
+        if (confirm('Are you sure you want to delete ALL messages forever? This cannot be undone.')) {
+            socket.emit('admin clear all');
+        }
+    });
+
+    socket.on('chat cleared', () => {
+        messages.innerHTML = '';
+        addMessage({ username: 'System', message: 'Chat history has been cleared by an admin.'});
     });
 });

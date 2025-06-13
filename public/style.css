@@ -48,6 +48,7 @@ body {
     padding: 1rem;
     border-bottom: 1px solid var(--border-color);
     text-align: center;
+    position: relative; /* Needed for admin panel positioning */
 }
 .chat-header h2 { margin: 0; font-size: 1.2rem; font-weight: 700; }
 #messages {
@@ -61,6 +62,7 @@ body {
     gap: 0.75rem;
 }
 #messages li { padding: 0.5rem 1rem; border-radius: 18px; max-width: 80%; word-wrap: break-word; }
+#messages li a { color: var(--primary-blue); text-decoration: underline; }
 #messages li.my-message { background-color: var(--my-message-bg); align-self: flex-end; border-bottom-right-radius: 4px; }
 #messages li:not(.my-message) { background-color: var(--system-message-bg); align-self: flex-start; border-bottom-left-radius: 4px; }
 #messages li.system-message { background-color: transparent; color: var(--secondary-text-color); font-style: italic; font-size: 0.9em; align-self: center; }
@@ -92,36 +94,39 @@ button {
     justify-content: center;
     align-items: center;
     transition: background-color 0.2s;
+    flex-shrink: 0;
 }
 #login-button { width: 100%; border-radius: 22px; font-size: 1rem; font-weight: 500; }
 button:hover { background-color: #0056b3; }
 #file-input { display: none; }
 .file-label { font-size: 1.5rem; cursor: pointer; color: var(--secondary-text-color); padding: 0.5rem; }
 #upload-status { font-size: 0.8em; color: var(--secondary-text-color); text-align: center; margin-top: 0.5rem; height: 1em; }
-.chat-image { max-width: 100%; max-height: 300px; border-radius: 12px; margin-top: 8px; display: block; }
+.chat-image { max-width: 100%; max-height: 300px; border-radius: 12px; margin-top: 8px; display: block; cursor: pointer; }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+#progress-bar-container { width: 100%; background-color: var(--border-color); border-radius: 10px; margin-top: 0.5rem; height: 10px; }
+#progress-bar { width: 0%; height: 100%; background-color: var(--primary-blue); border-radius: 10px; transition: width 0.3s ease-in-out; }
 
-/* --- NEW: Progress Bar Styles --- */
-#progress-bar-container {
-    width: 100%;
-    background-color: var(--border-color);
-    border-radius: 10px;
-    margin-top: 0.5rem;
-    height: 20px;
+/* --- NEW: Admin Panel Styles --- */
+#admin-panel {
+    position: absolute;
+    top: 0.5rem;
+    right: 1rem;
 }
-#progress-bar {
-    width: 0%;
-    height: 100%;
-    background-color: var(--primary-blue);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+#clear-chat-button {
+    background-color: var(--admin-color);
     color: white;
-    font-size: 0.8em;
+    border: none;
+    font-size: 0.7rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 15px;
+    cursor: pointer;
+    width: auto;
+    height: auto;
     font-weight: 500;
-    transition: width 0.3s ease-in-out;
+}
+#clear-chat-button:hover {
+    background-color: #a72836;
 }

@@ -1,29 +1,31 @@
-// client.js
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io({ autoConnect: false });
 
-    // --- DOM Elements ---
-    const usernameContainer = document.getElementById('username-container');
+    // --- Element Selectors ---
+    const loginContainer = document.getElementById('login-container');
     const usernameInput = document.getElementById('username-input');
-    const passwordInput = document.getElementById('password-input'); // New
+    const passwordInput = document.getElementById('password-input');
     const loginButton = document.getElementById('login-button');
-    const loginError = document.getElementById('login-error'); // New
+    const loginError = document.getElementById('login-error');
     
     const chatContainer = document.getElementById('chat-container');
     const messages = document.getElementById('messages');
     const chatForm = document.getElementById('chat-form');
     const messageInput = document.getElementById('m');
+    const fileInput = document.getElementById('file-input');
+    const uploadStatus = document.getElementById('upload-status');
     
-    // --- Login Handling ---
-    const handleLogin = () => {
-        const name = usernameInput.value.trim();
-        const pass = passwordInput.value; // Get password value
+    let localUsername = '';
 
-        if (name) {
+    // --- Login Logic ---
+    const handleLogin = () => {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+        if (username) {
+            localUsername = username; // Store for personal message check
             loginError.textContent = '';
-            // Send username AND password to the server
             socket.connect();
-            socket.emit('user joined', { username: name, password: pass });
+            socket.emit('user joined', { username, password });
         }
     };
 
@@ -32,20 +34,53 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') handleLogin();
     });
 
-    // Handle successful login from server
     socket.on('login successful', () => {
-        usernameContainer.classList.add('hidden');
+        loginContainer.classList.add('hidden');
         chatContainer.classList.remove('hidden');
         messageInput.focus();
     });
 
-    // Handle failed login from server
     socket.on('login failed', (errorMsg) => {
-        loginError.textContent = `// ${errorMsg}`;
+        loginError.textContent = errorMsg;
         socket.disconnect();
     });
 
-    // --- Chat Message Handling ---
+    // --- Message & History Logic ---
+    const addMessage = (data) => {
+        const item = document.createElement('li');
+        
+        // Check if message is from the current user to align it right
+        if (data.username === localUsername || data.username === 'shresth' && localUsername === 'shresth') {
+            item.classList.add('my-message');
+        }
+        
+        // Check for admin status to apply special styling
+        if (data.isAdmin) {
+            item.classList.add('admin-message');
+        }
+
+        // Check for system messages
+        if (data.username === 'System') {
+            item.classList.add('system-message');
+        }
+
+        item.innerHTML = `<strong>${data.username}:</strong> ${data.message || data.message_text}`;
+        messages.appendChild(item);
+        messages.scrollTop = messages.scrollHeight;
+    };
+
+    socket.on('chat message', (data) => {
+        addMessage(data);
+    });
+
+    socket.on('load history', (history) => {
+        messages.innerHTML = ''; // Clear chat on load
+        history.forEach(data => {
+            addMessage(data);
+        });
+    });
+
+    // --- Form & File Upload Logic ---
     chatForm.addEventListener('submit', (e) => {
         e.preventDefault();
         if (messageInput.value) {
@@ -54,27 +89,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    const addMessage = (data) => {
-        const item = document.createElement('li');
-        // Check for admin status to apply a different style
-        if (data.isAdmin) {
-            item.classList.add('admin-message');
-        }
-        item.innerHTML = `<strong>${data.username}:</strong> ${data.message || data.message_text}`;
-        messages.appendChild(item);
-        messages.scrollTop = messages.scrollHeight; // Advanced scrolling
-    };
+    fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0];
+        if (!file) return;
 
-    socket.on('chat message', (data) => {
-        addMessage(data);
-    });
+        uploadStatus.textContent = `Uploading ${file.name}...`;
+        const formData = new FormData();
+        formData.append('file', file);
 
-    // --- Load Message History ---
-    socket.on('load history', (history) => {
-        history.forEach(data => {
-            addMessage(data);
+        fetch('/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.filePath) {
+                uploadStatus.textContent = 'Upload successful!';
+                socket.emit('file uploaded', { fileName: file.name, filePath: data.filePath });
+            } else {
+                throw new Error('Upload failed on server.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            uploadStatus.textContent = 'Upload failed.';
+        })
+        .finally(() => {
+            setTimeout(() => { uploadStatus.textContent = ''; }, 4000);
+            fileInput.value = ''; // Reset file input
         });
     });
-
-    // --- File Upload Logic is now REMOVED ---
 });

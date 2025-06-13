@@ -14,6 +14,8 @@
     --system-message-color: #65676b;
     --admin-color: #fa383e;
     --shadow-color: rgba(0, 0, 0, 0.1);
+    /* NEW: Define a specific color for links inside your own messages */
+    --my-message-link-color: #005ce6;
 }
 
 body[data-theme='dark'] {
@@ -29,6 +31,8 @@ body[data-theme='dark'] {
     --system-message-color: #b0b3b8;
     --admin-color: #ff6e74;
     --shadow-color: rgba(0, 0, 0, 0.3);
+    /* NEW: Define a brighter, high-contrast color for links in dark mode */
+    --my-message-link-color: #a6d8ff;
 }
 
 /* --- BASE & LAYOUT --- */
@@ -130,13 +134,19 @@ body {
 #messages li a { color: var(--accent-color); text-decoration: none; font-weight: 500; }
 #messages li a:hover { text-decoration: underline; }
 
+/* NEW: Rule to make hyperlinks visible inside your own message bubbles */
+#messages li.my-message a {
+    color: var(--my-message-link-color);
+}
+body[data-theme='dark'] #messages li.my-message { color: #fff; } /* Makes regular text white on the blue bubble */
+body[data-theme='light'] #messages li.my-message { color: #000; } /* Makes regular text black on the green bubble */
+
+
 #messages li.my-message {
     background-color: var(--my-message-bg);
     align-self: flex-end;
     border-bottom-right-radius: 4px;
 }
-body[data-theme='dark'] #messages li.my-message { color: #fff; }
-
 #messages li:not(.my-message) {
     background-color: var(--their-message-bg);
     align-self: flex-start;
@@ -169,7 +179,7 @@ input[type="text"], input[type="password"] {
     flex-grow: 1;
     transition: all 0.2s;
     background-color: var(--bg-color);
-    color: var(--text-primary);
+    color: var(--text-primary); /* UPDATED: Uses CSS variables for text color */
     font-size: 1rem;
 }
 #login-container input { margin-bottom: 1rem; text-align: center; }

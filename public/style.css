@@ -127,21 +127,7 @@ body {
     to { opacity: 1; transform: scale(1); }
 }
 
-/* --- NEW: Styles for the message header and timestamp --- */
-.message-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.25rem;
-}
-.timestamp {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    margin-left: 1rem;
-}
-/* --- END NEW STYLES --- */
-
-#messages li strong { display: block; font-weight: 700; font-size: 0.9rem; }
+#messages li strong { display: block; margin-bottom: 0.25rem; font-weight: 700; font-size: 0.9rem; }
 #messages li .message-content { word-wrap: break-word; line-height: 1.5; }
 #messages li a { color: var(--accent-color); text-decoration: none; font-weight: 500; }
 #messages li a:hover { text-decoration: underline; }
@@ -180,7 +166,11 @@ body[data-theme='light'] #messages li.my-message { color: #000; }
 #chat-form { display: flex; align-items: center; gap: 0.75rem; }
 
 /* --- FORMS & BUTTONS --- */
-input[type="text"], input[type="password"] {
+
+/* UPDATED: This single, powerful rule targets all three input boxes by their unique IDs */
+#username-input, 
+#password-input,
+#m {
     border: 1px solid var(--border-color);
     padding: 0.8rem 1rem;
     border-radius: 20px;
@@ -191,17 +181,23 @@ input[type="text"], input[type="password"] {
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
+/* Specific layout adjustments for each input still apply */
 #login-container input {
     width: 100%;
     margin-bottom: 1rem;
     text-align: center;
 }
 
-#chat-form input {
+#chat-form #m {
     flex-grow: 1;
 }
 
-input:focus { outline: none; border-color: var(--accent-color); background-color: var(--panel-bg-color); box-shadow: 0 0 5px var(--accent-color); }
+input:focus { 
+    outline: none; 
+    border-color: var(--accent-color); 
+    background-color: var(--panel-bg-color);
+    box-shadow: 0 0 5px var(--accent-color);
+}
 
 button {
     background-color: var(--accent-color);
@@ -227,7 +223,7 @@ button:hover { background-color: var(--accent-hover); }
 .file-label:hover { color: var(--accent-color); }
 
 #upload-status, #progress-bar-container { margin-top: 0.5rem; font-size: 0.8rem; height: 1.2em; text-align: center; }
-#progress-bar { height: 100%; background-color: var(--accent-color); border-radius: 10px; color: white; font-size: 0.8em; font-weight: 500; display: flex; align-items: center; justify-content: center; transition: width 0.3s ease-in-out; }
+#progress-bar { height: 100%; background-color: var(--accent-color); border-radius: 5px; color: white; transition: width 0.3s ease; }
 
 /* --- THEME SWITCHER --- */
 .theme-switcher { display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); }

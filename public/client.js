@@ -74,14 +74,28 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.isAdmin) item.classList.add('admin-message');
         if (data.username === 'System') item.classList.add('system-message');
 
-        // NEW: Format the timestamp for display
-        const time = data.created_at ? new Date(data.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+        // --- NEW: Advanced Timestamp Formatting ---
+        let timeString = '';
+        if (data.created_at) {
+            const messageDate = new Date(data.created_at);
+            const today = new Date();
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            // Using date-fns library (loaded in index.html)
+            if (dateFns.isSameDay(messageDate, today)) {
+                timeString = dateFns.format(messageDate, 'h:mm a'); // e.g., 10:51 AM
+            } else if (dateFns.isSameDay(messageDate, yesterday)) {
+                timeString = 'Yesterday';
+            } else {
+                timeString = dateFns.format(messageDate, 'dd/MM/yyyy'); // e.g., 14/06/2025
+            }
+        }
         
-        // UPDATED: The message HTML now includes a span for the timestamp
         item.innerHTML = `
             <div class="message-header">
                 <strong>${data.username}</strong>
-                <span class="timestamp">${time}</span>
+                <span class="timestamp">${timeString}</span>
             </div>
             <div class="message-content">${data.message || data.message_text}</div>
         `;

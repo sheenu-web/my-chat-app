@@ -8,13 +8,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
-
     <div id="app-wrapper">
         <div id="login-container" class="active-panel">
             <div class="panel-content">
                 <i class="fas fa-comments logo"></i>
                 <h1>Welcome to Pro Chat</h1>
-                <p>The modern real-time communication platform.(Not really)</p>
+                <p>The modern real-time communication platform.</p>
                 <div id="login-error"></div>
                 <input id="username-input" class="pro-input" placeholder="Enter your username" autocomplete="off" />
                 <input type="password" id="password-input" class="pro-input" placeholder="Password (admin only)" autocomplete="off" />
@@ -25,8 +24,8 @@
         <div id="chat-container" class="hidden-panel">
             <header class="chat-header">
                 <div class="header-content">
-                    <h2>Kuch Nahi Hai Bhai</h2>
-                    <p>By Shresth Jain</p>
+                    <h2>Public Chat Room</h2>
+                    <p>Powered by Gemini</p>
                 </div>
                 <div class="theme-switcher">
                     <i class="fas fa-sun"></i>
@@ -65,6 +64,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.28.0/cdn.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="client.js"></script>
 </body>

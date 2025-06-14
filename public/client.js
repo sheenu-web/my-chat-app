@@ -74,31 +74,41 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.isAdmin) item.classList.add('admin-message');
         if (data.username === 'System') item.classList.add('system-message');
 
-        // --- NEW: Advanced Timestamp Formatting ---
+        // UPDATED: Corrected and simplified timestamp formatting logic
         let timeString = '';
         if (data.created_at) {
-            const messageDate = new Date(data.created_at);
-            const today = new Date();
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-
-            // Using date-fns library (loaded in index.html)
-            if (dateFns.isSameDay(messageDate, today)) {
-                timeString = dateFns.format(messageDate, 'h:mm a'); // e.g., 10:51 AM
-            } else if (dateFns.isSameDay(messageDate, yesterday)) {
-                timeString = 'Yesterday';
-            } else {
-                timeString = dateFns.format(messageDate, 'dd/MM/yyyy'); // e.g., 14/06/2025
+            try {
+                const messageDate = new Date(data.created_at);
+                const today = new Date();
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                // The 'dateFns' object is available globally from the script we added in index.html
+                if (dateFns.isSameDay(messageDate, today)) {
+                    timeString = dateFns.format(messageDate, 'h:mm a');
+                } else if (dateFns.isSameDay(messageDate, yesterday)) {
+                    timeString = 'Yesterday';
+                } else {
+                    timeString = dateFns.format(messageDate, 'dd/MM/yyyy');
+                }
+            } catch (e) {
+                console.error("Could not parse date:", data.created_at, e);
+                timeString = ''; // Fallback to empty string if date is invalid
             }
         }
         
-        item.innerHTML = `
+        // This handles system messages that have no timestamp
+        const headerHTML = data.username !== 'System' ? `
             <div class="message-header">
                 <strong>${data.username}</strong>
                 <span class="timestamp">${timeString}</span>
-            </div>
+            </div>` : '';
+
+        item.innerHTML = `
+            ${headerHTML}
             <div class="message-content">${data.message || data.message_text}</div>
         `;
+
         messages.appendChild(item);
         messages.scrollTop = messages.scrollHeight;
     };

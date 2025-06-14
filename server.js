@@ -1,4 +1,4 @@
-// server.js - Final Version with Inline Image Fix
+// server.js - Final Version with Timestamps
 
 const express = require('express');
 const http = require('http');
@@ -44,7 +44,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/upload', upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).send('No file uploaded.');
-  console.log('Cloudinary Upload Success:', req.file);
   res.json({
     filePath: req.file.path,
     isImage: req.file.resource_type === 'image'
@@ -54,6 +53,7 @@ app.post('/upload', upload.single('file'), (req, res) => {
 io.on('connection', async (socket) => {
   console.log('A user connected');
   try {
+    // UPDATED: Select all columns including the timestamp
     const result = await pool.query('SELECT * FROM messages ORDER BY created_at ASC LIMIT 150');
     socket.emit('load history', result.rows);
   } catch (err) { console.error('Error loading message history', err); }
@@ -76,8 +76,18 @@ io.on('connection', async (socket) => {
   socket.on('chat message', async (msg) => {
     if (!socket.username) return;
     try {
-      await pool.query('INSERT INTO messages(username, message_text, is_admin) VALUES($1, $2, $3)', [socket.username, msg, socket.isAdmin]);
-      io.emit('chat message', { username: socket.username, message: msg, isAdmin: socket.isAdmin });
+      // UPDATED: The INSERT query now returns the 'created_at' timestamp of the new message
+      const result = await pool.query(
+        'INSERT INTO messages(username, message_text, is_admin) VALUES($1, $2, $3) RETURNING created_at',
+        [socket.username, msg, socket.isAdmin]
+      );
+      // Send the new timestamp to all clients
+      io.emit('chat message', { 
+          username: socket.username, 
+          message: msg, 
+          isAdmin: socket.isAdmin,
+          created_at: result.rows[0].created_at 
+      });
     } catch (err) { console.error('Error saving message', err); }
   });
 
@@ -86,12 +96,9 @@ io.on('connection', async (socket) => {
     
     let messageText;
     if (data.isImage) {
-      // --- NEW: Add transformation flags to the image URL ---
       const imageUrl = data.filePath;
       const parts = imageUrl.split('/upload/');
-      // This inserts 'fl_inline/""' into the URL to force the browser to show the image
       const inlineUrl = `${parts[0]}/upload/fl_inline/${parts[1]}`;
-
       messageText = `<a href="${inlineUrl}" target="_blank" title="View full image"><img src="${inlineUrl}" alt="${data.fileName}" class="chat-image"/></a>`;
     } else {
       const fileLink = `<a href="${data.filePath}" target="_blank" download>${data.fileName}</a>`;
@@ -99,8 +106,16 @@ io.on('connection', async (socket) => {
     }
     
     try {
-        await pool.query('INSERT INTO messages(username, message_text, is_admin) VALUES($1, $2, $3)', [socket.username, messageText, socket.isAdmin]);
-        io.emit('chat message', { username: socket.username, message: messageText, isAdmin: socket.isAdmin });
+        const result = await pool.query(
+            'INSERT INTO messages(username, message_text, is_admin) VALUES($1, $2, $3) RETURNING created_at', 
+            [socket.username, messageText, socket.isAdmin]
+        );
+        io.emit('chat message', { 
+            username: socket.username, 
+            message: messageText, 
+            isAdmin: socket.isAdmin,
+            created_at: result.rows[0].created_at
+        });
     } catch (err) { console.error('Error saving file message', err); }
   });
 

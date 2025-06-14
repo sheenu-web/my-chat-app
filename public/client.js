@@ -74,7 +74,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.isAdmin) item.classList.add('admin-message');
         if (data.username === 'System') item.classList.add('system-message');
 
-        item.innerHTML = `<strong>${data.username}</strong><div class="message-content">${data.message || data.message_text}</div>`;
+        // NEW: Format the timestamp for display
+        const time = data.created_at ? new Date(data.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+        
+        // UPDATED: The message HTML now includes a span for the timestamp
+        item.innerHTML = `
+            <div class="message-header">
+                <strong>${data.username}</strong>
+                <span class="timestamp">${time}</span>
+            </div>
+            <div class="message-content">${data.message || data.message_text}</div>
+        `;
         messages.appendChild(item);
         messages.scrollTop = messages.scrollHeight;
     };

@@ -74,16 +74,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.isAdmin) item.classList.add('admin-message');
         if (data.username === 'System') item.classList.add('system-message');
 
-        // UPDATED: Corrected and simplified timestamp formatting logic
+        // UPDATED AND CORRECTED: This logic is now safer.
         let timeString = '';
-        if (data.created_at) {
+        if (data.created_at) { // Only format time if created_at exists
             try {
                 const messageDate = new Date(data.created_at);
                 const today = new Date();
                 const yesterday = new Date();
                 yesterday.setDate(yesterday.getDate() - 1);
-                
-                // The 'dateFns' object is available globally from the script we added in index.html
+
                 if (dateFns.isSameDay(messageDate, today)) {
                     timeString = dateFns.format(messageDate, 'h:mm a');
                 } else if (dateFns.isSameDay(messageDate, yesterday)) {
@@ -93,11 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (e) {
                 console.error("Could not parse date:", data.created_at, e);
-                timeString = ''; // Fallback to empty string if date is invalid
             }
         }
         
-        // This handles system messages that have no timestamp
+        // This handles system messages that have no header/timestamp
         const headerHTML = data.username !== 'System' ? `
             <div class="message-header">
                 <strong>${data.username}</strong>
